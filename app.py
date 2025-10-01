@@ -186,7 +186,7 @@ with tab_manage:
     rows = db.get_products(search=search)
 
     if not rows:
-        st.info("Aucun produit trouvé ... Ajoutez votre premier produit")
+        st.info("Aucun produit trouvé ... ")
     else:
         # Build DataFrame-like structure
         data = []
