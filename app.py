@@ -18,50 +18,9 @@ if not _db_initialized:
 
 st.set_page_config(page_title="Pharmacie - Gestion de Stock", page_icon="💊", layout="centered")
 
-# --------------- Accessibility Styles ---------------
-st.markdown(
-    """
-    <style>
-    html, body, [class*="css"]  {
-        font-size: 18px; /* Larger base font */
-    }
-    .stButton>button {
-        font-size: 18px;
-        padding: 0.6rem 1.2rem;
-        border-radius: 10px;
-    }
-    .stTextInput>div>div>input,
-    .stNumberInput input,
-    .stDateInput input {
-        font-size: 18px !important;
-    }
-    .product-card {
-        padding: 0.5rem 0.75rem;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
-# --------------- Helpers ---------------
-
-def status_badge(expiry_iso: str) -> str:
-    try:
-        y, m, d = map(int, expiry_iso.split("-"))
-        exp = date(y, m, d)
-    except Exception:
-        return "❓ Invalide"
-    today = date.today()
-    if exp < today:
-        return "⛔ Expiré"
-    elif exp <= today + timedelta(days=30):
-        return "⚠️ Bientôt (≤30j)"
-    return "✅ Valide"
 
 def refresh():
     st.rerun()
-
-
 # --------------- Dialogs ---------------
 @st.dialog("Modifier le produit")
 def edit_product_dialog(prod_id: int, name: str, quantity: int, expiry: str):
@@ -260,7 +219,7 @@ with tab_manage:
                                 margin-bottom: 5px;
                                 font-weight: bold;
                             ">🟢 EXCELLENT</div>
-                            <small style="color: #666;">Plus de 180 jours</small>
+                            <small style="color: #666;">Plus de 90 jours</small>
                         </div>
                         <div style="text-align: center; margin: 5px;">
                             <div style="
@@ -271,7 +230,7 @@ with tab_manage:
                                 margin-bottom: 5px;
                                 font-weight: bold;
                             ">🟡 À SURVEILLER</div>
-                            <small style="color: #666;">31 à 180 jours</small>
+                            <small style="color: #666;">30 à 90 jours</small>
                         </div>
                         <div style="text-align: center; margin: 5px;">
                             <div style="
@@ -282,7 +241,7 @@ with tab_manage:
                                 margin-bottom: 5px;
                                 font-weight: bold;
                             ">🔴 URGENT</div>
-                            <small style="color: #666;">30 jours ou moins</small>
+                            <small style="color: #666;">Moins de 30 jours</small>
                         </div>
                     </div>
                     <p style="text-align: center; margin-bottom: 0; font-size: 12px; color: #888;">
@@ -294,11 +253,11 @@ with tab_manage:
         if st.session_state.show_colors:
             def color_rows(row):
                 days_left = row["Jours avant Expiration"]
-                if days_left > 180:
+                if days_left > 90:
                     color = "background-color: #e8f5e8"  # Vert très clair
-                elif days_left > 30:  # Entre 31 et 180 jours
+                elif days_left >= 30:  # Entre 30 et 90 jours (inclus)
                     color = "background-color: #fff8dc"  # Jaune très clair (cornsilk)
-                else:  # <= 30 jours
+                else:  # < 30 jours
                     color = "background-color: #ffe4e1"  # Rouge très clair (mistyrose)
                 return [color] * len(row)
 
