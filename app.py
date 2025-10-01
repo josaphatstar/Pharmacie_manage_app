@@ -42,8 +42,10 @@ def edit_product_dialog(prod_id: int, name: str, quantity: int, expiry: str):
     b1, b2 = st.columns(2)
     with b1:
         if st.button("Enregistrer", type="primary", use_container_width=True, key=f"dlg_save_{prod_id}"):
+            # Validation des données saisies
             ok_q, qty_norm, err_q = validate_quantity(new_qty)
             ok_d, iso_date, err_d = validate_expiry_date(new_exp)
+            
             if not new_name.strip():
                 st.error("Le nom du produit est requis.")
                 return
@@ -53,8 +55,31 @@ def edit_product_dialog(prod_id: int, name: str, quantity: int, expiry: str):
             if not ok_d:
                 st.error(err_d)
                 return
+            
+            # Vérification si les données ont réellement changé
+            original_name = name.strip()
+            original_quantity = quantity
+            original_expiry = expiry
+            
+            new_name_clean = new_name.strip()
+            new_quantity_final = qty_norm or 0
+            new_expiry_final = iso_date or normalize_date(new_exp)
+            
+            # Comparaison des valeurs originales avec les nouvelles
+            has_changes = (
+                original_name != new_name_clean or
+                original_quantity != new_quantity_final or
+                original_expiry != new_expiry_final
+            )
+            
+            if not has_changes:
+                # Aucune modification détectée
+                st.info("Aucune modification détectée. Les données sont identiques.")
+                return
+            
+            # Procéder à la mise à jour seulement si des changements sont détectés
             try:
-                db.update_product(prod_id, new_name.strip(), qty_norm or 0, iso_date or normalize_date(new_exp))
+                db.update_product(prod_id, new_name_clean, new_quantity_final, new_expiry_final)
             except sqlite3.IntegrityError as e:
                 if "UNIQUE" in str(e).upper():
                     st.error("Un produit avec ce nom existe déjà.")
